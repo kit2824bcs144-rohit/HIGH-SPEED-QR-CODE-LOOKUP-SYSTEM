@@ -1,0 +1,181 @@
+#include <iostream>
+
+#include <vector>
+
+#include <list>
+
+#include <string>
+
+#include <functional>
+
+using namespace std;
+
+// Hash table class using chaining
+
+class QRHashTable {
+
+private:
+
+vector<list<pair<string, string>>> table;
+
+int numBuckets;
+
+int size;
+
+const float LOAD_FACTOR_THRESHOLD = 0.75;
+
+// Hash function
+
+int getBucketIndex(const string& key) const {
+
+hash<string> hasher;
+
+return hasher(key) % numBuckets; }
+
+// Resize hash table when load factor is high
+
+void rehash() {
+
+int oldNumBuckets = numBuckets;
+
+numBuckets *= 2;
+
+vector<list<pair<string, string>>> newTable(numBuckets);
+
+for (int i = 0; i < oldNumBuckets; i++) {
+
+for (auto& entry : table[i]) {
+
+int newIndex = getBucketIndex(entry.first);
+
+newTable[newIndex].push_back(entry); }
+
+}
+
+table = move(newTable);
+
+cout << "\n[Rehash completed. New bucket size: " << numBuckets << "]\n";
+
+}public:
+
+QRHashTable(int buckets = 5) {
+
+numBuckets = buckets;
+
+size = 0;
+
+table.resize(numBuckets); }
+
+// Insert key-value pair
+
+void insert(const string& qrData, const string& value) {
+
+int index = getBucketIndex(qrData);
+
+for (auto& entry : table[index]) {
+
+if (entry.first == qrData) {
+
+entry.second = value;
+
+cout << "[Updated existing QR data.]\n";
+
+return; } }
+
+table[index].push_back({qrData, value});
+
+size++;
+
+if ((float)size / numBuckets > LOAD_FACTOR_THRESHOLD)
+
+rehash(); }
+
+// Lookup QR data
+
+void lookup(const string& qrData) {
+
+int index = getBucketIndex(qrData);
+
+for (auto& entry : table[index]) {
+
+if (entry.first == qrData) {
+
+cout << "Found QR Data → " << entry.second << endl;
+
+return; } }
+cout << "QR Data not found.\n";
+} // Delete QR data
+void remove(const string& qrData) {
+int index = getBucketIndex(qrData);
+auto& chain = table[index];
+for (auto it = chain.begin(); it != chain.end(); ++it) {
+if (it->first == qrData) {
+chain.erase(it);
+size--;
+cout << "QR Data deleted successfully.\n";
+return; } }
+cout << "QR Data not found.\n"; }
+// Display entire hash table
+void display() const {
+cout << "\n------ QR Hash Table ------\n";
+for (int i = 0; i < numBuckets; i++) {
+cout << "Bucket " << i << ": ";
+for (auto& entry : table[i]) {
+cout << "[" << entry.first << " : " << entry.second << "] -> "; }
+cout << "NULL\n"; }
+cout << "----------------------------\n"; }};// Main driverint
+int main() { QRHashTable qrSystem;
+while (true) {
+cout << "\n=== QR Code Lookup System ===\n";
+cout << "1. Insert QR Data\n";
+
+cout << "2. Lookup QR Data\n";
+cout << "3. Delete QR Data\n";
+
+cout << "4. Display Hash Table\n";
+
+cout << "5. Exit\n";
+
+cout << "Choose option: ";
+
+int choice;
+
+cin >> choice;
+
+cin.ignore();
+
+string qrData, value;
+
+switch (choice) {
+
+case 1:
+
+cout << "Enter QR string: ";getline(cin, qrData);
+
+cout << "Enter associated value: ";
+
+getline(cin, value);qrSystem.insert(qrData, value); break;
+
+case 2:
+
+cout << "Enter QR string to lookup: "; getline(cin, qrData);
+
+qrSystem.lookup(qrData); break;
+
+case 3:
+
+cout << "Enter QR string to delete: ";
+
+getline(cin, qrData); qrSystem.remove(qrData); break;
+
+case 4:
+
+qrSystem.display(); break;
+
+case 5:
+
+cout << "Exiting...\n";
+
+return 0;
+
+default: cout << "Invalid option!\n"; } } return 0;}
